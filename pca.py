@@ -1,150 +1,5 @@
 import locale
 
-class MktData(object):
-	def __init__(self, best_bid, best_bid_size, best_offer, best_offer_size, spread, tp, round_lot):
-
-		self.best_bid = best_bid
-		self.best_bid_size = best_bid_size
-		self.best_offer = best_offer
-		self.best_offer_size = best_offer_size
-		self.spread = spread
-		self.tp = tp
-		self.round_lot = round_lot
-
-		def get_prices(self):
-			prices = list()
-			tp = self.tp
-			best_bid = self.best_bid
-			best_offer = self.best_offer
-			spread = self.spread
-
-			if tp % 2 is not 0:
-				tp -= 1
-
-				prices.append(best_bid)
-				prices.append(best_offer)
-				prices.append(self.get_mid_point())
-
-				counter = 1
-
-				while counter < int((tp/2)):
-
-					offer_price = round(best_offer + (counter * spread), 4)
-					bid_price = round(best_bid - (counter * spread), 4)
-
-					prices.append(offer_price)
-					prices.append(bid_price)
-
-					counter += 1
-
-					return prices
-
-				def mkt_bid_vols(self):
-					import math
-					bid_vol = self.best_bid_size
-					mkt_bid_vols = dict()
-
-					adj = 1 - math.log(3, 10)
-
-					counter = 0
-					for price in sorted(self.get_prices(), reverse=True):
-						if price == self.best_bid:
-							mkt_bid_vols[price] = bid_vol
-							if price < self.best_bid:
-								counter += 1
-								if counter == 1:
-									bid_vol = int(1.5 * bid_vol)
-									mkt_bid_vols[price] = bid_vol
-								else:
-									bid_vol = int(adj * bid_vol)
-									mkt_bid_vols[price] = bid_vol
-
-									return mkt_bid_vols
-
-								def cum_mkt_bid_vol(self, price):
-									mkt_bid_vols = self.mkt_bid_vols()
-									cum_mkt_bid_vol = dict()
-
-									if mkt_bid_vols.get(price):
-										cum_bid = int()
-										for p in sorted(self.get_prices(), reverse= True):
-											if p <= self.best_bid:
-												cum_bid += mkt_bid_vols[p]
-												cum_mkt_bid_vol[p] = cum_bid
-												return cum_mkt_bid_vol[price]
-										else:
-											return 0
-
-										def mkt_offer_vols(self):
-											import math
-											offer_vol = self.best_offer_size
-											mkt_offer_vols = dict()
-
-											adj = 1 - math.log(3, 10)
-
-											counter = 0
-											for price in sorted(self.get_prices()):
-												if price == self.best_offer:
-													mkt_offer_vols[price] = offer_vol
-													if price > self.best_offer:
-														counter += 1
-														if counter ==1:
-															offer_vol = int(1.5 * offer_vol)
-															mkt_offer_vols[price] = offer_vol
-														else:
-															offer_vol = int(adj * offer_vol)
-															mkt_offer_vols[price] = offer_vol
-
-															return mkt_offer_vols
-
-														def cum_mkt_offer_vol(self, price):
-															mkt_offer_vols = self.mkt_offer_vols()
-															cum_mkt_offer_vol = dict()
-
-															if mkt_offer_vols.get(price):
-																cum_offer = int()
-																for p in sorted(self.get_prices()):
-																	if p >= self.best_offer:
-																		cum_offer += mkt_offer_vols[p]
-																		cum_mkt_offer_vol[p] = cum_offer
-																		return cum_mkt_offer_vol[price]
-																else:
-																	return 0
-
-																def get_best_bid(self):
-
-																	return self.best_bid
-
-																def get_best_bid_size(self):
-
-																	return self.best_bid_size
-
-																def get_best_offer(self):
-
-																	return self.best_offer
-
-																def get_best_offer_size(self):
-
-																	return self.best_offer_size
-
-																def get_mid_point(self):
-
-																	mid_point = round((self.best_bid + self.best_offer) / float(2), 4)
-
-																	return mid_point
-
-																def get_spread(self):
-
-																	return self.spread
-
-																def get_tp(self):
-
-																	return self.tp
-
-																def get_round_lot(self):
-
-																	return self.round_lot
-
 class Orders(object):
 	def __init__(self, mkt_data):
 		self.mkt_data = mkt_data
@@ -286,6 +141,153 @@ class Orders(object):
 			min_vol = int((min_vol / 100) * vol)
 
 			self.add_offer(vol, limit, target, price_liquidity, min_vol)
+
+
+class MktData(object):
+	def __init__(self, best_bid, best_bid_size, best_offer, best_offer_size, spread, tp, round_lot):
+
+		self.best_bid = best_bid
+		self.best_bid_size = best_bid_size
+		self.best_offer = best_offer
+		self.best_offer_size = best_offer_size
+		self.spread = spread
+		self.tp = tp
+		self.round_lot = round_lot
+
+	def get_prices(self):
+		prices = list()
+		tp = self.tp
+		best_bid = self.best_bid
+		best_offer = self.best_offer
+		spread = self.spread
+
+		if tp % 2 is not 0:
+			tp -= 1
+
+		prices.append(best_bid)
+		prices.append(best_offer)
+		prices.append(self.get_mid_point())
+
+		counter = 1
+
+		while counter < int((tp/2)):
+
+			offer_price = round(best_offer + (counter * spread), 4)
+			bid_price = round(best_bid - (counter * spread), 4)
+
+			prices.append(offer_price)
+			prices.append(bid_price)
+
+			counter += 1
+
+		return prices
+
+	def mkt_bid_vols(self):
+		import math
+		bid_vol = self.best_bid_size
+		mkt_bid_vols = dict()
+
+		adj = 1 - math.log(3, 10)
+
+		counter = 0
+		for price in sorted(self.get_prices(), reverse=True):
+			if price == self.best_bid:
+				mkt_bid_vols[price] = bid_vol
+			if price < self.best_bid:
+				counter += 1
+				if counter == 1:
+					bid_vol = int(1.5 * bid_vol)
+					mkt_bid_vols[price] = bid_vol
+				else:
+					bid_vol = int(adj * bid_vol)
+					mkt_bid_vols[price] = bid_vol
+
+		return mkt_bid_vols
+
+	def cum_mkt_bid_vol(self, price):
+		mkt_bid_vols = self.mkt_bid_vols()
+		cum_mkt_bid_vol = dict()
+
+		if mkt_bid_vols.get(price):
+			cum_bid = int()
+			for p in sorted(self.get_prices(), reverse= True):
+				if p <= self.best_bid:
+					cum_bid += mkt_bid_vols[p]
+					cum_mkt_bid_vol[p] = cum_bid
+			return cum_mkt_bid_vol[price]
+		else:
+			return 0
+
+	def mkt_offer_vols(self):
+		import math
+		offer_vol = self.best_offer_size
+		mkt_offer_vols = dict()
+
+		adj = 1 - math.log(3, 10)
+
+		counter = 0
+		for price in sorted(self.get_prices()):
+			if price == self.best_offer:
+				mkt_offer_vols[price] = offer_vol
+			if price > self.best_offer:
+				counter += 1
+				if counter ==1:
+					offer_vol = int(1.5 * offer_vol)
+					mkt_offer_vols[price] = offer_vol
+				else:
+					offer_vol = int(adj * offer_vol)
+					mkt_offer_vols[price] = offer_vol
+
+		return mkt_offer_vols
+
+	def cum_mkt_offer_vol(self, price):
+		mkt_offer_vols = self.mkt_offer_vols()
+		cum_mkt_offer_vol = dict()
+
+		if mkt_offer_vols.get(price):
+			cum_offer = int()
+			for p in sorted(self.get_prices()):
+				if p >= self.best_offer:
+					cum_offer += mkt_offer_vols[p]
+					cum_mkt_offer_vol[p] = cum_offer
+			return cum_mkt_offer_vol[price]
+		else:
+			return 0
+
+	def get_best_bid(self):
+
+		return self.best_bid
+
+	def get_best_bid_size(self):
+
+		return self.best_bid_size
+
+	def get_best_offer(self):
+
+		return self.best_offer
+
+	def get_best_offer_size(self):
+
+		return self.best_offer_size
+
+	def get_mid_point(self):
+
+		mid_point = round((self.best_bid + self.best_offer) / float(2), 4)
+
+		return mid_point
+
+	def get_spread(self):
+
+		return self.spread
+
+	def get_tp(self):
+
+		return self.tp
+
+	def get_round_lot(self):
+
+		return self.round_lot
+
 
 class Market(object):
 	def __init__(self, orders, mkt_data, bids_at_price, offers_at_price):
@@ -471,6 +473,7 @@ class Market(object):
 						alloc_dict[x] += 1
 
 			return alloc_dict[offer_id]
+
 
 class Utility(object):
 	def __init__(self, orders, mkt_data):
@@ -770,6 +773,7 @@ class Utility(object):
 
 		return dap
 
+
 class Pricing(object):
 	def __init__(self, orders, mkt_data):
 		self.orders = orders
@@ -896,4 +900,6 @@ def test():
 	print pricing.match_price()
 	print pricing.get_match_volume()
 
-# test()
+
+
+
